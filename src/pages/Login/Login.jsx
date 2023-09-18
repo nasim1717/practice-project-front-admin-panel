@@ -5,6 +5,8 @@ import { AiOutlineExclamationCircle } from "react-icons/ai";
 import { IoMdLock } from "react-icons/io";
 import { RxCross2 } from "react-icons/rx";
 import { useLoginMutation } from "../../features/auth/authApi";
+import { useNavigate } from "react-router-dom";
+import { PulseLoader } from "react-spinners";
 
 const Login = () => {
   const [errosName, setErrorName] = useState(false);
@@ -15,11 +17,15 @@ const Login = () => {
   const [nameLabel, setNameLabel] = useState(false);
   const [watchPass, setWatchPass] = useState(false);
   const [closeUnAuth, setCloseUnAut] = useState(false);
-  const [login, { error, isLoading }] = useLoginMutation();
+  const navigate = useNavigate();
+  const [login, { error, isLoading, isSuccess }] = useLoginMutation();
 
   useEffect(() => {
+    if (isSuccess) {
+      navigate("/");
+    }
     setCloseUnAut(false);
-  }, [error]);
+  }, [error, isSuccess]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -147,11 +153,20 @@ const Login = () => {
           </div>
 
           <div
-            className={`mx-auto bg-[#059669] w-96 max-[645px]:w-full mb-4 rounded ${
-              errosPass ? "mt-8" : "mt-5"
-            }`}
+            className={`mx-auto bg-[#059669] w-96 max-[645px]:w-full mb-4 rounded hover:bg-[#10b981] ${
+              isLoading && "bg-[#10b981]"
+            } ${errosPass ? "mt-8" : "mt-5"} relative`}
           >
-            <button className="py-3 w-full text-slate-50 font-bold">Login</button>
+            <button disabled={isLoading} className="py-3 w-full text-slate-50 font-bold">
+              Login
+            </button>
+            {isLoading && (
+              <PulseLoader
+                size={10}
+                color="#f8fafc"
+                className="absolute top-[15px] right-[125px]"
+              />
+            )}
           </div>
         </form>
         <div className="w-[400px] max-[645px]:w-[272px] relative ">
