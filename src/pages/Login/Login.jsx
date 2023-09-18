@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import logo from "../../assets/logo.jpg";
 import { GoEye, GoEyeClosed } from "react-icons/go";
 import { AiOutlineExclamationCircle } from "react-icons/ai";
 import { IoMdLock } from "react-icons/io";
 import { RxCross2 } from "react-icons/rx";
+import { useLoginMutation } from "../../features/auth/authApi";
 
 const Login = () => {
   const [errosName, setErrorName] = useState(false);
@@ -13,6 +14,12 @@ const Login = () => {
   const [passLabel, setPassLabel] = useState(false);
   const [nameLabel, setNameLabel] = useState(false);
   const [watchPass, setWatchPass] = useState(false);
+  const [closeUnAuth, setCloseUnAut] = useState(false);
+  const [login, { error, isLoading }] = useLoginMutation();
+
+  useEffect(() => {
+    setCloseUnAut(false);
+  }, [error]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -23,6 +30,9 @@ const Login = () => {
     if (!name || !password) {
       setErrorName(true);
       setErrorPass(true);
+    }
+    if (name && password) {
+      login({ email: name, password });
     }
   };
 
@@ -41,13 +51,18 @@ const Login = () => {
           </div>
         </div>
         <div
-          className={`border-[1px] border-solid border-red-200 rounded bg-[#fecaca] mx-3 mt-6 px-6 py-5 relative hidden`}
+          className={`border-[1px] border-solid border-red-200 rounded bg-[#fecaca] mx-3 mt-6 px-6 py-5 relative ${
+            error ? "block" : "hidden"
+          } ${closeUnAuth && "hidden"}`}
         >
           <div className="flex items-center ">
             <IoMdLock className="text-[25px] text-red-800"></IoMdLock>
             <h2 className="pl-6 text-[15px] font-bold text-red-800">Unauthorized</h2>
           </div>
-          <RxCross2 className="absolute right-[5px] top-1 text-[22px] text-[#737373]"></RxCross2>
+          <RxCross2
+            onClick={() => setCloseUnAut(true)}
+            className="absolute right-[5px] top-1 text-[22px] text-[#737373]"
+          ></RxCross2>
         </div>
         <form onSubmit={handleSubmit} className="max-[645px]:p-4">
           <div className="flex justify-center mt-8 relative">
@@ -114,13 +129,15 @@ const Login = () => {
             </div>
             <GoEye
               onClick={() => setWatchPass(!watchPass)}
-              className={`absolute right-8 top-5 ${errosPass && !password ? " hidden" : "block"} ${
+              className={`absolute right-8 top-5 ${errosPass && !password && " hidden"} ${
                 watchPass ? "block" : "hidden"
               }`}
             ></GoEye>
             <GoEyeClosed
               onClick={() => setWatchPass(!watchPass)}
-              className={`absolute right-8 top-5 ${!watchPass ? "block" : "hidden"} `}
+              className={`absolute right-8 top-5 ${!watchPass ? "block" : "hidden"} ${
+                errosPass && !password && "hidden"
+              }`}
             ></GoEyeClosed>
             <AiOutlineExclamationCircle
               className={`${
