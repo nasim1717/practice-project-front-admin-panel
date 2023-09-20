@@ -25,7 +25,7 @@ const Login = () => {
       navigate("/");
     }
     setCloseUnAut(false);
-  }, [error, isSuccess]);
+  }, [error, isSuccess, navigate]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
