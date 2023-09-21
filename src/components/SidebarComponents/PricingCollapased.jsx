@@ -1,10 +1,16 @@
 import { TbChartBar } from "react-icons/tb";
-import { MdAddShoppingCart, MdOutlineHealthAndSafety, MdAttachMoney } from "react-icons/md";
+import {
+  MdAddShoppingCart,
+  MdOutlineHealthAndSafety,
+  MdAttachMoney,
+  MdOutlineKeyboardArrowRight,
+} from "react-icons/md";
 import { HiMiniPencilSquare } from "react-icons/hi2";
 import { IoIosArrowDown } from "react-icons/io";
 import { useState } from "react";
 
-const PricingCollapased = () => {
+// eslint-disable-next-line react/prop-types
+const PricingCollapased = ({ sidebarOn, sidebarFocus }) => {
   const [collapsedPrice, setCollapsedPrice] = useState(false);
 
   return (
@@ -14,29 +20,59 @@ const PricingCollapased = () => {
           collapsedPrice && "bg-[#047857]"
         } rounded`}
       >
-        <MdAddShoppingCart className="text-[20px] ml-4"></MdAddShoppingCart>
-        <h2 className="text-[12px] ml-3">Pricing</h2>
+        <MdAddShoppingCart
+          className={`text-[20px] ${sidebarOn && !sidebarFocus ? "" : "ml-4"}`}
+        ></MdAddShoppingCart>
+        <h2 className={`text-[12px] ml-3 ${sidebarOn && !sidebarFocus && "hidden"}`}>Pricing</h2>
         <IoIosArrowDown
           onClick={() => setCollapsedPrice(!collapsedPrice)}
-          className="ml-14"
+          className={` ${(sidebarOn && sidebarFocus) || !sidebarOn ? "ml-14" : ""} ${
+            collapsedPrice ? "block" : "hidden"
+          }`}
         ></IoIosArrowDown>
+        <MdOutlineKeyboardArrowRight
+          onClick={() => setCollapsedPrice(!collapsedPrice)}
+          className={`text-[20px] ${(sidebarOn && sidebarFocus) || !sidebarOn ? "ml-14" : ""} ${
+            !collapsedPrice ? "block" : "hidden"
+          }`}
+        ></MdOutlineKeyboardArrowRight>
       </div>
-      <div className={` ml-3 ${collapsedPrice ? "block" : "hidden"}`}>
+      <div
+        className={` ${sidebarOn && !sidebarFocus ? "mx-auto" : "ml-3"} ${
+          collapsedPrice ? "block" : "hidden"
+        }`}
+      >
         <div className="flex items-center mt-5 mx-[10px] py-2 text-[#f1f5f9] font-bold hover:bg-[#047857] rounded">
-          <HiMiniPencilSquare className="text-[20px] ml-4"></HiMiniPencilSquare>
-          <h2 className="text-[12px] ml-3">Towing Reate</h2>
+          <HiMiniPencilSquare
+            className={`text-[20px]  ${sidebarOn && !sidebarFocus ? "mx-auto" : "ml-4"}`}
+          ></HiMiniPencilSquare>
+          <h2 className={`text-[12px] ml-3 ${sidebarOn && !sidebarFocus && "hidden"}`}>
+            Towing Reate
+          </h2>
         </div>
         <div className="flex items-center mt-5 mx-[10px] py-2 text-[#f1f5f9] font-bold hover:bg-[#047857] rounded">
-          <TbChartBar className="text-[20px] ml-4"></TbChartBar>
-          <h2 className="text-[12px] ml-3">Shiping Rate</h2>
+          <TbChartBar
+            className={`text-[20px]  ${sidebarOn && !sidebarFocus ? "mx-auto" : "ml-4"}`}
+          ></TbChartBar>
+          <h2 className={`text-[12px] ml-3 ${sidebarOn && !sidebarFocus && "hidden"}`}>
+            Shiping Rate
+          </h2>
         </div>
         <div className="flex items-center mt-5 mx-[10px] py-2 text-[#f1f5f9] font-bold hover:bg-[#047857] rounded">
-          <MdOutlineHealthAndSafety className="text-[20px] ml-4"></MdOutlineHealthAndSafety>
-          <h2 className="text-[12px] ml-3">Clearance Rate</h2>
+          <MdOutlineHealthAndSafety
+            className={`text-[20px]  ${sidebarOn && !sidebarFocus ? "mx-auto" : "ml-4"}`}
+          ></MdOutlineHealthAndSafety>
+          <h2 className={`text-[12px] ml-3 ${sidebarOn && !sidebarFocus && "hidden"}`}>
+            Clearance Rate
+          </h2>
         </div>
         <div className="flex items-center mt-5 mx-[10px] py-2 text-[#f1f5f9] font-bold hover:bg-[#047857] rounded">
-          <MdAttachMoney className="text-[20px] ml-4"></MdAttachMoney>
-          <h2 className="text-[12px] ml-3">Prince Inquiry</h2>
+          <MdAttachMoney
+            className={`text-[20px]  ${sidebarOn && !sidebarFocus ? "mx-auto" : "ml-4"}`}
+          ></MdAttachMoney>
+          <h2 className={`text-[12px] ml-3 ${sidebarOn && !sidebarFocus && "hidden"}`}>
+            Prince Inquiry
+          </h2>
         </div>
       </div>
     </div>
