@@ -18,7 +18,7 @@ const SidebarSettings = () => {
         <h2 className="text-[12px] ml-3">Settings</h2>
         <IoIosArrowDown
           onClick={() => setSettingsCollps(!settingsCollps)}
-          className="ml-7"
+          className="ml-14"
         ></IoIosArrowDown>
       </div>
       <div className={` ml-3 ${settingsCollps ? "block" : "hidden"}`}>

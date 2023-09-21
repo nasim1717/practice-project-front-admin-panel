@@ -18,7 +18,7 @@ const PricingCollapased = () => {
         <h2 className="text-[12px] ml-3">Pricing</h2>
         <IoIosArrowDown
           onClick={() => setCollapsedPrice(!collapsedPrice)}
-          className="ml-7"
+          className="ml-14"
         ></IoIosArrowDown>
       </div>
       <div className={` ml-3 ${collapsedPrice ? "block" : "hidden"}`}>

@@ -8,17 +8,14 @@ import { HiArrowsUpDown } from "react-icons/hi2";
 import { BsTruck } from "react-icons/bs";
 import SidebarSettings from "../../../components/SidebarComponents/SidebarSettings";
 import PricingCollapased from "../../../components/SidebarComponents/PricingCollapased";
-import adminPic from "../../../assets/adminpic.jpg";
-import { useState } from "react";
+import AdminProfile from "../../../components/AdminProfie/AdminProfile";
 
 // eslint-disable-next-line react/prop-types
 const Sidebars = ({ children }) => {
-  const [adminProfile, setAdminProfile] = useState(false);
-
   return (
     <div className="flex pt-4 ml-3 h-[100vh]">
       {/* sidebar start */}
-      <div className="bg-[#065f46] basis-[200px] grid grid-cols-1">
+      <div className="bg-[#065f46] basis-[200px] grid grid-cols-1 rounded-md">
         <div className="mt-3 flex items-center">
           <div className="w-[100px] ml-3">
             <img src={logo} alt="" className="w-full" />
@@ -72,22 +69,10 @@ const Sidebars = ({ children }) => {
           <SidebarSettings></SidebarSettings>
           {/* setting collapse end */}
         </div>
-        <div className={`bg-[#047857] pl-4 pt-3 pb-1`}>
-          <div onClick={() => setAdminProfile(!adminProfile)} className="flex gap-2 items-center">
-            <img src={adminPic} alt="" className="w-[32px] h-[34px] rounded-md" />
-            <div className="leading-[16px]  font-bold text-[#d1d5db]">
-              <h2 className="text-[13px]">izharulhak</h2>
-              <h2 className="text-[10px] decoration-dotted underline">Mastar Admin</h2>
-            </div>
-          </div>
-          <div className={adminProfile ? "block" : "hidden"}>
-            <h2>helo</h2>
-            <h2>helo</h2>
-            <h2>helo</h2>
-            <h2>helo</h2>
-            <h2>helo</h2>
-            <h2>helo</h2>
-            <h2>helo</h2>
+        <div className="mt-4">
+          <hr className=" border-[#a8a29e]  border-[1px] w-[95px] mb-0 mx-auto" />
+          <div className={` `}>
+            <AdminProfile></AdminProfile>
           </div>
         </div>
       </div>
