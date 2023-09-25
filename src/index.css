@@ -7,3 +7,25 @@
 .example::-webkit-scrollbar {
   display: none;
 }
+/* 	hsl(142, 77%, 73%) */
+.input-text:focus {
+  border-color: hsl(156 72% 67%);
+  box-shadow: 0 0 0 3px hsla(156, 72%, calc(42% + 40%), 0.8);
+  outline: 3px solid transparent;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+}

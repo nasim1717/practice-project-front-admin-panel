@@ -3,19 +3,32 @@ import Login from "../pages/Login/Login";
 import Main from "../Layout/Main";
 import Dashboard from "../pages/Dashboard/Dashboard";
 import Customers from "../pages/Customers/Customers";
+import PrivaeRoute from "../privateRoute/PrivateRoute";
 
 const router = createBrowserRouter([
   {
     path: "/",
-    element: <Main></Main>,
+    element: (
+      <PrivaeRoute>
+        <Main></Main>
+      </PrivaeRoute>
+    ),
     children: [
       {
         path: "/",
-        element: <Dashboard></Dashboard>,
+        element: (
+          <PrivaeRoute>
+            <Dashboard></Dashboard>
+          </PrivaeRoute>
+        ),
       },
       {
         path: "/customers",
-        element: <Customers></Customers>,
+        element: (
+          <PrivaeRoute>
+            <Customers></Customers>
+          </PrivaeRoute>
+        ),
       },
     ],
   },

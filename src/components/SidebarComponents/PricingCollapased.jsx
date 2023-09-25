@@ -28,13 +28,13 @@ const PricingCollapased = ({ sidebarOn, sidebarFocus }) => {
           onClick={() => setCollapsedPrice(!collapsedPrice)}
           className={` ${(sidebarOn && sidebarFocus) || !sidebarOn ? "ml-14" : ""} ${
             collapsedPrice ? "block" : "hidden"
-          }`}
+          } cursor-pointer`}
         ></IoIosArrowDown>
         <MdOutlineKeyboardArrowRight
           onClick={() => setCollapsedPrice(!collapsedPrice)}
           className={`text-[20px] ${(sidebarOn && sidebarFocus) || !sidebarOn ? "ml-14" : ""} ${
             !collapsedPrice ? "block" : "hidden"
-          }`}
+          } cursor-pointer`}
         ></MdOutlineKeyboardArrowRight>
       </div>
       <div

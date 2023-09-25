@@ -24,13 +24,13 @@ const SidebarSettings = ({ sidebarOn, sidebarFocus }) => {
           onClick={() => setSettingsCollps(!settingsCollps)}
           className={` ${(sidebarOn && sidebarFocus) || !sidebarOn ? "ml-14" : ""} ${
             settingsCollps ? "block" : "hidden"
-          }`}
+          } cursor-pointer`}
         ></IoIosArrowDown>
         <MdOutlineKeyboardArrowRight
           onClick={() => setSettingsCollps(!settingsCollps)}
           className={` ${(sidebarOn && sidebarFocus) || !sidebarOn ? "ml-14" : ""} text-[20px] ${
             !settingsCollps ? "block" : "hidden"
-          }`}
+          } cursor-pointer`}
         ></MdOutlineKeyboardArrowRight>
       </div>
       <div

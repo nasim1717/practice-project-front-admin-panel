@@ -10,21 +10,21 @@ import SidebarSettings from "../../../components/SidebarComponents/SidebarSettin
 import PricingCollapased from "../../../components/SidebarComponents/PricingCollapased";
 import AdminProfile from "../../../components/AdminProfie/AdminProfile";
 import { useState } from "react";
+import { Link } from "react-router-dom";
 
 // eslint-disable-next-line react/prop-types
 const Sidebars = ({ children }) => {
   const [sidebarOn, setSidebarOn] = useState(false);
   const [sidebarFocus, setSidebarFoucs] = useState(false);
-  console.log("sidebaron-->", sidebarFocus);
 
   return (
-    <div className={`flex pt-4 ml-3 h-[100vh] `}>
+    <div className={`flex pt-4 pb-4 ml-3  h-screen `}>
       {/* sidebar start */}
       <div
         onMouseEnter={() => setSidebarFoucs(true)}
         onMouseLeave={() => setSidebarFoucs(false)}
         className={`bg-[#065f46] ${
-          sidebarOn ? "basis-[65px] hover:basis-[200px]" : "basis-[200px]"
+          sidebarOn ? "basis-[65px] hover:basis-[230px]" : "basis-[230px]"
         } grid grid-cols-1  rounded-md`}
       >
         <div className="mt-3 flex items-center">
@@ -33,7 +33,7 @@ const Sidebars = ({ children }) => {
           </div>
           <BiArrowToLeft
             onClick={() => setSidebarOn(!sidebarOn)}
-            className={`ml-10 text-[30px] cursor-pointer text-[#f1f5f9] ${
+            className={`ml-7 text-[30px] cursor-pointer text-[#f1f5f9] ${
               (!sidebarOn && sidebarFocus) || !sidebarOn ? "block" : "hidden"
             } `}
           ></BiArrowToLeft>
@@ -63,9 +63,12 @@ const Sidebars = ({ children }) => {
             <CgProfile
               className={`text-[20px] ${sidebarOn && !sidebarFocus ? "mx-auto" : "ml-4"}`}
             ></CgProfile>
-            <h2 className={`text-[12px] ml-3 ${sidebarOn && !sidebarFocus && "hidden"}`}>
-              Customers
-            </h2>
+            <Link to="/customers">
+              {" "}
+              <h2 className={`text-[12px] ml-3 ${sidebarOn && !sidebarFocus && "hidden"}`}>
+                Customers
+              </h2>
+            </Link>
           </div>
           {/* consignee */}
           <div className="flex items-center mt-5 mx-[10px] py-2 text-[#f1f5f9] font-bold hover:bg-[#047857] rounded">
@@ -124,10 +127,14 @@ const Sidebars = ({ children }) => {
             Settings
           </h2>
           {/* settings collapsed */}
-          <SidebarSettings sidebarOn={sidebarOn} sidebarFocus={sidebarFocus}></SidebarSettings>
+          <SidebarSettings
+            sidebarOn={sidebarOn}
+            sidebarFocus={sidebarFocus}
+            className={`${sidebarOn && !sidebarFocus ? "mb-11" : ""}`}
+          ></SidebarSettings>
           {/* setting collapse end */}
         </div>
-        <div className={`${sidebarOn && !sidebarFocus ? "mt-1" : "mt-4"}`}>
+        <div className={`${sidebarOn && !sidebarFocus ? "" : "mt-4"}`}>
           <hr
             className={`border-[#a8a29e]  border-[1px] w-1/2
             } mb-0 mx-auto`}
@@ -139,7 +146,7 @@ const Sidebars = ({ children }) => {
       </div>
 
       {/* sidebar end */}
-      <main className={`ml-6 ${sidebarOn ? "" : ""}`}>{children}</main>
+      <main className={`mx-5 w-full  relative `}>{children}</main>
     </div>
   );
 };
