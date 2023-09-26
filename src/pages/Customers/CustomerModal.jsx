@@ -4,12 +4,11 @@ import Select from "react-select";
 import { countryApi, useGetCountryQuery } from "../../features/countrys/countryApi";
 import { useEffect } from "react";
 import { useDispatch } from "react-redux";
-
-const options = [
-  { value: "chocolate", label: "Chocolate" },
-  { value: "strawberry", label: "Strawberry" },
-  { value: "vanilla", label: "Vanilla" },
-];
+import { useForm, Controller } from "react-hook-form";
+import { MdErrorOutline } from "react-icons/md";
+import BounceLoader from "react-spinners/BounceLoader";
+import { useCreateCustomersMutation } from "../../features/customers/customersApi";
+import { useRef } from "react";
 
 const customStyles = {
   control: (base) => ({
@@ -22,34 +21,17 @@ const CustomerModal = () => {
   const [isClearable, setIsClearable] = useState(true);
   const [isLoadingState, setIsLoadingState] = useState(false);
   const [isLoadingCity, setIsLoadingCity] = useState(false);
-  // const [customerId, setCustomerId] = useState("");
-  // const [password, setPassword] = useState("");
-  // const [userName, setUsername] = useState("");
-  // const [email, setEmail] = useState("");
-  // const [customerName, setCustomerName] = useState("");
-  // const [companyName, setCompanyName] = useState("");
-  // const [phone, setPhone] = useState("");
-  // const [phoneUAE, setPhoneUAE] = useState("");
-  // const [trnUsa, setTrnUsa] = useState("");
-  // const [trnUae, setTrnUae] = useState("");
-  // const [address1, setAddress1] = useState("");
-  // const [address2, setAddress2] = useState("");
   const [country, setCountry] = useState("");
   const [state, setState] = useState("");
   const [city, setCity] = useState("");
-  // const [zipCode, setZipCode] = useState("");
-  // const [otherEmail, setOtherEmail] = useState("");
-  // const [notes, setNotes] = useState("");
-  // const [fax, setFax] = useState("");
-  // const [category, setCategory] = useState("");
-  // const [buyerId, setBuyerId] = useState("");
-  // const [status, setStatus] = useState(false);
   const [optionCountrys, setoptionCountrys] = useState([]);
   const [optionStates, setOptionState] = useState([]);
   const [optionsCitys, setOptionCitys] = useState([]);
   const { data: countrys } = useGetCountryQuery();
   const dispatch = useDispatch();
-
+  const { control, handleSubmit, formState, setError } = useForm();
+  const [createCustomers, { data: createCustomerData, error }] = useCreateCustomersMutation();
+  const modalRef = useRef(null);
   useEffect(() => {
     if (countrys?.data) {
       const optionsCountryArr = [];
@@ -99,12 +81,39 @@ const CustomerModal = () => {
       .catch(() => {});
   }, [state, isLoadingCity, dispatch]);
 
+  useEffect(() => {
+    if (error?.data?.errors) {
+      Object.keys(error?.data?.errors).forEach((field) => {
+        if (error?.data?.errors[field]) {
+          setError(field, { message: error?.data?.errors[field][0] });
+        } else {
+          clearErrors(field);
+        }
+      });
+    }
+  }, [error]);
+
+  useEffect(() => {
+    console.log("create customer succes-->", createCustomerData);
+  }, [createCustomerData]);
+
+  const clearErrors = (fieldName) => {
+    setError(fieldName, { message: "" });
+  };
+
+  const closeModal = () => {
+    if (modalRef.current) {
+      modalRef.current.close();
+    }
+  };
+
   const handleCountry = (e) => {
     if (!e?.value) {
       setCountry("");
       setState("");
       setCity("");
       setOptionState([]);
+      setError("state", { message: "The state field is required" });
     } else {
       setCountry(e?.value);
       setState("");
@@ -117,6 +126,7 @@ const CustomerModal = () => {
       setState("");
       setCity("");
       setOptionCitys([]);
+      setError("city", { message: "The city field is required" });
     } else {
       setState(e?.value);
       setIsLoadingCity(true);
@@ -131,8 +141,26 @@ const CustomerModal = () => {
     }
   };
 
+  const onSubmit = (data) => {
+    console.log("form data-->", data);
+    const customersData = {
+      customer_name: data.customer_name,
+      company_name: data.company_name,
+      username: data.username,
+      email: data.email,
+      phone: data.phone,
+      city: data.city.value.name,
+      city_id: data.city.value.id,
+      state: data.state.value.name,
+      state_id: data.state.value.id,
+      password: data.password,
+      country_id: data.country.value.id,
+    };
+    createCustomers(customersData);
+  };
+
   return (
-    <dialog id="my_modal_4" className="modal">
+    <dialog id="my_modal_4" className="modal" ref={modalRef}>
       <div className="modal-box  max-w-[65%]">
         <div className="flex justify-between pb-5 ">
           <h3 className="font-medium text-lg">Add Customer</h3>
@@ -143,7 +171,7 @@ const CustomerModal = () => {
           </form>
         </div>
         <div className="">
-          <form className="">
+          <form onSubmit={handleSubmit(onSubmit)} className="">
             <div className="grid grid-cols-2 gap-y-6 overflow-y-scroll max-h-[490px] px-7 ">
               {/* customer id */}
               <div className="flex items-center gap-x-14 mt-2">
@@ -161,87 +189,235 @@ const CustomerModal = () => {
               </div>
               {/* customer id end */}
               {/*  password */}
-              <div className="flex items-center gap-x-[72px]">
+
+              <div className="flex items-center gap-x-[72px] mt-2 relative">
                 <label htmlFor="password" className="text-[16px] text-gray-500">
                   Password
                 </label>
-                <input
-                  type="text"
-                  name="password"
-                  id="password"
-                  className="input-text border-solid border-[1px] py-[6px] pl-2 bg-[#f1f5f9] rounded-md w-[300px] font-semibold text-[15px]"
-                  placeholder="Password"
-                />
+                <div className="flex flex-col ">
+                  <Controller
+                    name="password"
+                    control={control}
+                    rules={{
+                      required: "The password field is required",
+                      minLength: {
+                        value: 6,
+                        message: "password must be at least 6 characters long",
+                      },
+                    }}
+                    render={({ field }) => (
+                      <>
+                        <input
+                          {...field}
+                          type="password"
+                          id="password"
+                          className={` ${
+                            formState?.errors?.password
+                              ? "border-red-500 input-text-error"
+                              : "input-text"
+                          } border-solid border-[1px] py-[6px] pl-2 bg-[#f1f5f9] rounded-md w-[300px] font-semibold text-[15px] `}
+                          placeholder="Password"
+                        />
+
+                        {formState?.errors?.password && (
+                          <p className="text-red-500 ">{formState?.errors?.password?.message}</p>
+                        )}
+                      </>
+                    )}
+                  />
+                </div>
+                {formState?.errors?.password && (
+                  <MdErrorOutline className="text-red-500 absolute right-9 top-2 "></MdErrorOutline>
+                )}
               </div>
               {/* password end */}
               {/* user name */}
-              <div className="flex items-center gap-x-[73px]">
+              <div className="flex items-center gap-x-[73px] relative">
                 <label htmlFor="userName" className="text-[16px] text-gray-500">
                   Username
                 </label>
-                <input
-                  type="text"
-                  name="userName"
-                  id="userName"
-                  className="input-text border-solid border-[1px] py-[6px] pl-2 bg-[#f1f5f9] rounded-md w-[300px] font-semibold text-[15px]"
-                  placeholder="username"
-                />
+                <div className="flex flex-col">
+                  <Controller
+                    name="username"
+                    control={control}
+                    rules={{
+                      required: "The username field is required",
+                    }}
+                    render={({ field }) => (
+                      <>
+                        <input
+                          {...field}
+                          type="text"
+                          id="userName"
+                          className={`${
+                            formState?.errors?.username
+                              ? "border-red-500 input-text-error"
+                              : "input-text"
+                          } border-solid border-[1px] py-[6px] pl-2 bg-[#f1f5f9] rounded-md w-[300px] font-semibold text-[15px]`}
+                          placeholder="username"
+                        />
+                        {formState?.errors?.username && (
+                          <p className="text-red-500 ">{formState?.errors?.username?.message}</p>
+                        )}
+                      </>
+                    )}
+                  ></Controller>
+                </div>
+                {formState?.errors?.userName && (
+                  <MdErrorOutline className="text-red-500 absolute right-7 top-3 "></MdErrorOutline>
+                )}
               </div>
               {/* user name end */}
               {/* Email */}
-              <div className="flex items-center gap-x-[100px]">
+              <div className="flex items-center gap-x-[100px] relative">
                 <label htmlFor="email" className="text-[16px] text-gray-500">
                   Email
                 </label>
-                <input
-                  type="text"
-                  name="email"
-                  id="email"
-                  className="input-text border-solid border-[1px] py-[6px] pl-2 bg-[#f1f5f9] rounded-md w-[300px] font-semibold text-[15px]"
-                  placeholder="Email"
-                />
+                <div className="flex flex-col">
+                  <Controller
+                    name="email"
+                    control={control}
+                    rules={{
+                      required: "The email field is required",
+                    }}
+                    render={({ field }) => (
+                      <>
+                        <input
+                          {...field}
+                          type="email"
+                          id="email"
+                          className={`${
+                            formState?.errors?.email
+                              ? "border-red-500 input-text-error"
+                              : "input-text"
+                          } border-solid border-[1px] py-[6px] pl-2 bg-[#f1f5f9] rounded-md w-[300px] font-semibold text-[15px]`}
+                          placeholder="Email"
+                        />
+                        {formState?.errors?.email && (
+                          <p className="text-red-500 ">{formState?.errors?.email?.message}</p>
+                        )}
+                      </>
+                    )}
+                  ></Controller>
+                </div>
+                {formState?.errors?.email && (
+                  <MdErrorOutline className="text-red-500 absolute right-8 top-3 "></MdErrorOutline>
+                )}
               </div>
               {/* Email end */}
               {/* Customer name */}
-              <div className="flex items-center gap-x-[28px]">
+              <div className="flex items-center gap-x-[28px] ">
                 <label htmlFor="customerName" className="text-[16px] text-gray-500">
                   Customer Name
                 </label>
-                <input
-                  type="text"
-                  name="customerName"
-                  id="customerName"
-                  className="input-text border-solid border-[1px] py-[6px] pl-2 bg-[#f1f5f9] rounded-md w-[300px] font-semibold text-[15px]"
-                  placeholder="Customer Name"
-                />
+                <div className="flex flex-col relative">
+                  <Controller
+                    name="customer_name"
+                    control={control}
+                    rules={{
+                      required: "The customer Name field is required",
+                    }}
+                    render={({ field }) => (
+                      <>
+                        <input
+                          {...field}
+                          type="text"
+                          id="customerName"
+                          className={`${
+                            formState?.errors?.customer_name
+                              ? "border-red-500 input-text-error"
+                              : "input-text"
+                          } border-solid border-[1px] py-[6px] pl-2 bg-[#f1f5f9] rounded-md w-[300px] font-semibold text-[15px]`}
+                          placeholder="Customer Name"
+                        />
+                        {formState?.errors?.customer_name && (
+                          <p className="text-red-500 ">
+                            {formState?.errors?.customer_name?.message}
+                          </p>
+                        )}
+                      </>
+                    )}
+                  ></Controller>
+                  {formState?.errors?.customerName && (
+                    <MdErrorOutline className="text-red-500 absolute right-3 top-3 "></MdErrorOutline>
+                  )}
+                </div>
               </div>
               {/* customer name end */}
               {/* company name  */}
-              <div className="flex items-center gap-x-6">
+              <div className="flex items-center gap-x-6 relative">
                 <label htmlFor="comapnyName" className="text-[16px] text-gray-500">
                   Company Name
                 </label>
-                <input
-                  type="text"
-                  name="comapnyName"
-                  id="comapnyName"
-                  className="input-text border-solid border-[1px] py-[6px] pl-2 bg-[#f1f5f9] rounded-md w-[300px] font-semibold text-[15px]"
-                  placeholder="Compnay Name"
-                />
+                <div className="flex flex-col">
+                  <Controller
+                    name="company_name"
+                    control={control}
+                    rules={{
+                      required: "The compnay name is required",
+                    }}
+                    render={({ field }) => (
+                      <>
+                        <input
+                          {...field}
+                          type="text"
+                          id="comapnyName"
+                          className={`${
+                            formState?.errors?.company_name
+                              ? "border-red-500 input-text-error"
+                              : "input-text"
+                          } border-solid border-[1px] py-[6px] pl-2 bg-[#f1f5f9] rounded-md w-[300px] font-semibold text-[15px]`}
+                          placeholder="Compnay Name"
+                        />
+                        {formState?.errors?.companyName && (
+                          <p className="text-red-500 ">
+                            {formState?.errors?.company_name?.message}
+                          </p>
+                        )}
+                      </>
+                    )}
+                  ></Controller>
+                </div>
+                {formState?.errors?.companyName && (
+                  <MdErrorOutline className="text-red-500 absolute right-8 top-3 "></MdErrorOutline>
+                )}
               </div>
-              {/* address 1 end */}
+              {/*company name end */}
               {/* phone */}
-              <div className="flex items-center gap-x-[98px]">
+              <div className="flex items-center gap-x-[98px] relative">
                 <label htmlFor="phone" className="text-[16px] text-gray-500">
                   Phone
                 </label>
-                <input
-                  type="text"
-                  name="phone"
-                  id="phone"
-                  className="input-text border-solid border-[1px] py-[6px] pl-2 bg-[#f1f5f9] rounded-md w-[300px] font-semibold text-[15px]"
-                  placeholder="Phone"
-                />
+                <div className="flex flex-col">
+                  <Controller
+                    name="phone"
+                    control={control}
+                    rules={{
+                      required: "The phone field is required",
+                    }}
+                    render={({ field }) => (
+                      <>
+                        <input
+                          {...field}
+                          type="text"
+                          id="phone"
+                          className={`${
+                            formState?.errors?.phone
+                              ? "border-red-500 input-text-error"
+                              : "input-text"
+                          } border-solid border-[1px] py-[6px] pl-2 bg-[#f1f5f9] rounded-md w-[300px] font-semibold text-[15px]`}
+                          placeholder="Phone"
+                        />
+                        {formState?.errors?.phone && (
+                          <p className="text-red-500 ">{formState?.errors?.phone?.message}</p>
+                        )}
+                      </>
+                    )}
+                  ></Controller>
+                </div>
+                {formState?.errors?.phone && (
+                  <MdErrorOutline className="text-red-500 absolute right-8 top-3 "></MdErrorOutline>
+                )}
               </div>
               {/* phone end  */}
               {/* phne uae */}
@@ -319,13 +495,33 @@ const CustomerModal = () => {
                 <label htmlFor="country" className="text-[16px] text-gray-500">
                   Country
                 </label>
-                <Select
-                  onChange={handleCountry}
-                  options={optionCountrys}
-                  styles={customStyles}
-                  isClearable={isClearable}
-                  placeholder="Select Country"
-                ></Select>
+                <div className="flex flex-col">
+                  <Controller
+                    name="country"
+                    control={control}
+                    rules={{
+                      required: "The country field is required",
+                    }}
+                    render={({ field }) => (
+                      <>
+                        <Select
+                          {...field}
+                          onChange={(e) => {
+                            field.onChange(e);
+                            handleCountry(e);
+                          }}
+                          options={optionCountrys}
+                          styles={customStyles}
+                          isClearable={isClearable}
+                          placeholder="Select Country"
+                        ></Select>
+                        {formState?.errors?.country && (
+                          <p className="text-red-500 ">{formState?.errors?.country?.message}</p>
+                        )}
+                      </>
+                    )}
+                  ></Controller>
+                </div>
               </div>
               {/* country end */}
               {/* state */}
@@ -333,15 +529,35 @@ const CustomerModal = () => {
                 <label htmlFor="state" className="text-[16px] text-gray-500">
                   State
                 </label>
-                <Select
-                  onChange={handleState}
-                  value={state ? state.label : ""}
-                  options={optionStates}
-                  styles={customStyles}
-                  isLoading={isLoadingState}
-                  isClearable={isClearable}
-                  placeholder="Select State"
-                ></Select>
+                <div className="flex flex-col">
+                  <Controller
+                    name="state"
+                    control={control}
+                    rules={{
+                      required: "The state field is required",
+                    }}
+                    render={({ field }) => (
+                      <>
+                        <Select
+                          {...field}
+                          onChange={(e) => {
+                            field.onChange(e);
+                            handleState(e);
+                          }}
+                          value={state ? state.label : null}
+                          options={optionStates}
+                          styles={customStyles}
+                          isLoading={isLoadingState}
+                          isClearable={isClearable}
+                          placeholder="Select State"
+                        ></Select>
+                        {formState?.errors?.state && (
+                          <p className="text-red-500 ">{formState?.errors?.state?.message}</p>
+                        )}
+                      </>
+                    )}
+                  ></Controller>
+                </div>
               </div>
               {/* state end*/}
               {/* City*/}
@@ -349,15 +565,33 @@ const CustomerModal = () => {
                 <label htmlFor="city" className="text-[16px] text-gray-500">
                   City
                 </label>
-                <Select
-                  onChange={handleCity}
-                  value={city ? city.label : ""}
-                  options={optionsCitys}
-                  styles={customStyles}
-                  isLoading={isLoadingCity}
-                  isClearable={isClearable}
-                  placeholder="Select City"
-                ></Select>
+                <div className="flex flex-col">
+                  <Controller
+                    name="city"
+                    control={control}
+                    rules={{ required: "The city field is required" }}
+                    render={({ field }) => (
+                      <>
+                        <Select
+                          {...field}
+                          onChange={(e) => {
+                            field.onChange(e);
+                            handleCity(e);
+                          }}
+                          value={city ? city.label : ""}
+                          options={optionsCitys}
+                          styles={customStyles}
+                          isLoading={isLoadingCity}
+                          isClearable={isClearable}
+                          placeholder="Select City"
+                        ></Select>
+                        {formState?.errors?.city && (
+                          <p className="text-red-500 ">{formState?.errors?.city?.message}</p>
+                        )}
+                      </>
+                    )}
+                  ></Controller>
+                </div>
               </div>
               {/* City end */}
               {/* zip code */}
@@ -458,9 +692,12 @@ const CustomerModal = () => {
               {/* status end */}
             </div>
             <div className="mt-3 flex justify-end">
-              <button className="bg-[#15803d] text-[#f9fafb] py-2 px-5 rounded-md text-base font-bold">
-                + Save
-              </button>
+              <div className="flex items-center relative">
+                <button className="bg-[#15803d] text-[#f9fafb] py-2 px-5 rounded-md text-base font-bold">
+                  + Save
+                </button>
+                <BounceLoader color="#f4f4f5" size={20} className={`absolute right-7 `} />
+              </div>
             </div>
           </form>
         </div>

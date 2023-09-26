@@ -8,9 +8,15 @@
   display: none;
 }
 /* 	hsl(142, 77%, 73%) */
+/* hsl(0, 84%, 60%) */
 .input-text:focus {
   border-color: hsl(156 72% 67%);
   box-shadow: 0 0 0 3px hsla(156, 72%, calc(42% + 40%), 0.8);
+  outline: 3px solid transparent;
+}
+.input-text-error:focus {
+  border-color: hsl(0 84% 67%);
+  box-shadow: 0 0 0 3px hsla(0, 84%, calc(42% + 40%), 0.8);
   outline: 3px solid transparent;
 }
 
