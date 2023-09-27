@@ -24,7 +24,7 @@ const Sidebars = ({ children }) => {
         onMouseEnter={() => setSidebarFoucs(true)}
         onMouseLeave={() => setSidebarFoucs(false)}
         className={`bg-[#065f46] ${
-          sidebarOn ? "basis-[65px] hover:basis-[230px]" : "basis-[230px]"
+          sidebarOn ? "basis-[65px] hover:basis-[250px]" : "basis-[250px]"
         } grid grid-cols-1  rounded-md`}
       >
         <div className="mt-3 flex items-center">

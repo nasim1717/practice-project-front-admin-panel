@@ -8,7 +8,7 @@ const Navbar = () => {
   return (
     <div className="navbar  shadow-4xl rounded-xl ">
       <div className="flex-1 ">
-        <a className=" text-[14px] font-medium text-gray-400 ">Galaxy Shipping</a>
+        <a className=" text-lg font-medium text-gray-400 ">Galaxy Shipping</a>
       </div>
       <div className="flex gap-x-5">
         <div className=" btn btn-ghost btn-circle flex items-center">

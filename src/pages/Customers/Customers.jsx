@@ -1,105 +1,80 @@
-import { useEffect } from "react";
-import { useGetCustomersQuery } from "../../features/customers/customersApi";
+import { useEffect, useState } from "react";
+import { customersApi } from "../../features/customers/customersApi";
 import RouteNavbar from "../shared/Navbar/RouteNavbar";
 import CustomersHeader from "./CustomersHeader";
 import { useNavigate } from "react-router-dom";
-import { MdOutlineRemoveRedEye, MdOutlineDelete } from "react-icons/md";
-import { BiPencil } from "react-icons/bi";
-import { FiSettings } from "react-icons/fi";
+import { useDispatch } from "react-redux";
+import ReactPaginate from "react-paginate";
+
+import CustomersTableRow from "../../components/TableRow/CustomersTableRow";
 
 const Customers = () => {
-  const { data: customers, error, isLoading, isError } = useGetCustomersQuery();
+  const [pageCount, setPageCount] = useState(0);
+  const [parPage, setParPage] = useState(3);
+  const [itemOffset, setItemOffset] = useState(1);
+  const [fromData, setFromData] = useState(0);
+  const [toData, setToData] = useState(0);
+  const [totalData, setTotalData] = useState(0);
   const navigate = useNavigate();
-  useEffect(() => {
-    if (error?.status === 401) {
-      navigate("/auth-pages/login");
-    }
-  }, [error, navigate]);
+  const dispatch = useDispatch();
+  const [content, setContent] = useState(<div className="text-lg font-semibold">Loading....</div>);
 
-  let content = null;
-  if (isLoading) {
-    content = <div className="text-lg font-semibold">Loading....</div>;
-  }
-  if (!isLoading && isError) {
-    content = (
-      <tr>
-        <td className="py-5">Server error</td>
-      </tr>
-    );
-  }
-  if (!isLoading && !isError && customers?.data.length === 0) {
-    content = (
-      <tr>
-        <td className="py-5">No Record Data</td>
-      </tr>
-    );
-  }
-  if (!isLoading && !isError && customers.data?.length > 0) {
-    content = customers.data.map((customer, index) => (
-      <tr key={customer.id} className="text-[15px] font-bold text-[#6b7280]">
-        <td>{index + 1}</td>
-        <td>{customer?.user_id}</td>
-        <td className="py-5">{customer?.customer_name}</td>
-        <td>{customer?.company_name}</td>
-        <td>{customer?.vehicles_count}</td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td>{customer?.phone}</td>
-        <td>{customer?.city_name}</td>
-        <td>
-          <input type="checkbox" className="toggle bg-[#047857] h-5" />
-        </td>
-        <td>
-          <button className="flex items-center text-[#059669] py-2 px-4 bg-[#f8fafc] font-bold rounded">
-            <span>
-              <MdOutlineRemoveRedEye className="mr-2 text-[20px]"></MdOutlineRemoveRedEye>
-            </span>
-            View
-          </button>
-        </td>
-        <td>
-          <button className="flex items-center text-[#059669] py-2 px-4 bg-[#f8fafc] font-bold rounded">
-            <span>
-              <BiPencil className="mr-2 text-[20px]"></BiPencil>
-            </span>
-            Edit
-          </button>
-        </td>
-        <td>
-          <button className="flex items-center text-[#dc2626] py-2 px-4 bg-[#f8fafc] font-bold rounded">
-            <span>
-              <FiSettings className="mr-2 text-[17px]"></FiSettings>
-            </span>
-            Password
-          </button>
-        </td>
-        <td>
-          <button className="flex items-center text-[#f97316] py-2 px-4 bg-[#f8fafc] font-bold rounded">
-            <span>
-              <MdOutlineDelete className="mr-2 text-[17px]"></MdOutlineDelete>
-            </span>
-            Delete
-          </button>
-        </td>
-      </tr>
-    ));
-  }
+  useEffect(() => {
+    dispatch(customersApi.endpoints.getCustomers.initiate({ itemOffset, parPage }))
+      .unwrap()
+      .then((data) => {
+        console.log("data-->", data.data);
+        if (data?.data?.length > 0) {
+          let dispalyDataFrom = data?.from;
+          const content = data.data.map((customer) => (
+            <CustomersTableRow
+              key={customer.id}
+              customer={customer}
+              dispalyDataFrom={dispalyDataFrom++}
+            ></CustomersTableRow>
+          ));
+          setContent(content);
+        } else if (data?.data?.length === 0) {
+          setContent(
+            <tr className="text-lg font-semibold">
+              <td className="">Data </td>
+              <td>not found!</td>
+            </tr>
+          );
+        }
+        setPageCount(data?.last_page);
+        setToData(data?.to);
+        setFromData(data?.from);
+        setTotalData(data?.total);
+      })
+      .catch((er) => {
+        if (er?.status === 401) {
+          navigate("/auth-pages/login");
+        }
+        setContent(<div className="text-lg font-semibold">server error</div>);
+      });
+  }, [itemOffset, parPage]);
+
+  const handlePageClick = (event) => {
+    setContent(<div className="text-lg font-semibold">Loading....</div>);
+    setItemOffset(event.selected + 1);
+  };
+
   return (
     <div className="shadow-4xl">
-      <RouteNavbar></RouteNavbar>
+      <RouteNavbar>Customer</RouteNavbar>
       <div className="mt-4 ">
         <CustomersHeader></CustomersHeader>
-        <div className="overflow-hidden hover:overflow-scroll h-[19rem]  ">
+        <div className="overflow-hidden hover:overflow-scroll h-[25rem]  ">
           <div className="ml-3  max-w-[82.938rem] mt-4">
             <table className="table table-zebra ">
               {/* head */}
               <thead className="">
                 <tr className="text-[16px] text-[#1e293b] font-semibold bg-[#f3f4f6]">
                   <th className="py-4">SL</th>
-                  <th className=" underline">Customer Id</th>
-                  <th className=" underline">Customer Name</th>
-                  <th className=" underline">Company Name</th>
+                  <th className=" underline cursor-pointer">Customer Id</th>
+                  <th className=" underline cursor-pointer">Customer Name</th>
+                  <th className=" underline cursor-pointer">Company Name</th>
                   <th className="">All Vehicles</th>
                   <th className="">On Hand</th>
                   <th className="">Car On The Way</th>
@@ -145,61 +120,48 @@ const Customers = () => {
                 </tr>
                 {/* row 2 */}
                 {content}
-                {/* row 3 */}
-                {/* <tr className="text-[15px] font-normal">
-                  <td>index </td>
-                  <td>customer</td>
-                  <td className="py-5">customer</td>
-                  <td>customer?.company_name</td>
-                  <td>customer?.vehicles_count</td>
-                  <td></td>
-                  <td></td>
-                  <td></td>
-                  <td>customer</td>
-                  <td>customer</td>
-                  <td>
-                    <input type="checkbox" className="toggle bg-[#047857] h-5" />
-                  </td>
-                  <td>
-                    <button className="flex items-center text-[#059669] py-2 px-4 bg-[#f8fafc] font-bold rounded">
-                      <span>
-                        <MdOutlineRemoveRedEye className="mr-2 text-[20px]"></MdOutlineRemoveRedEye>
-                      </span>
-                      View
-                    </button>
-                  </td>
-                  <td>
-                    <button className="flex items-center text-[#059669] py-2 px-4 bg-[#f8fafc] font-bold rounded">
-                      <span>
-                        <BiPencil className="mr-2 text-[20px]"></BiPencil>
-                      </span>
-                      Edit
-                    </button>
-                  </td>
-                  <td>
-                    <button className="flex items-center text-[#dc2626] py-2 px-4 bg-[#f8fafc] font-bold rounded">
-                      <span>
-                        <FiSettings className="mr-2 text-[17px]"></FiSettings>
-                      </span>
-                      Password
-                    </button>
-                  </td>
-                  <td>
-                    <button className="flex items-center text-[#f97316] py-2 px-4 bg-[#f8fafc] font-bold rounded">
-                      <span>
-                        <MdOutlineDelete className="mr-2 text-[17px]"></MdOutlineDelete>
-                      </span>
-                      Delete
-                    </button>
-                  </td>
-                </tr> */}
               </tbody>
             </table>
           </div>
         </div>
-        <div className="flex justify-between mt-7 mx-4 pb-8   ">
-          <p className="text-gray-400">Showing 1 to 20 of 889 items</p>
-          <div>dgerg</div>
+        <div className="flex items-center justify-between pt-10 mx-4 pb-8   ">
+          <p className="text-gray-400 text-lg">
+            Showing {fromData} to {toData} of {totalData} items
+          </p>
+          <div className="flex items-center gap-x-8 pr-4">
+            <div className="flex items-center  bg-[#e2e8f0] px-4  rounded-md">
+              <ReactPaginate
+                className="flex gap-x-1 py-2 text-base"
+                breakLabel="..."
+                nextLabel="next >"
+                onPageChange={handlePageClick}
+                pageRangeDisplayed={2}
+                pageCount={pageCount}
+                previousLabel="< previous"
+                renderOnZeroPageCount={null}
+                pageLinkClassName="px-2 "
+                activeClassName="bg-[#0f766e] rounded-md text-[#e2e8f0]"
+              />
+            </div>
+            <div>
+              <select
+                onChange={(e) => {
+                  setParPage(e.target.value);
+                  setContent(<div className="text-lg font-semibold">Loading....</div>);
+                }}
+                name=""
+                id=""
+                className="px-5 py-1 input-text bg-[#f1f5f9] "
+              >
+                <option value="3">3</option>
+                <option value="5">5</option>
+                <option value="10">10</option>
+                <option value="20">20</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+              </select>
+            </div>
+          </div>
         </div>
       </div>
     </div>

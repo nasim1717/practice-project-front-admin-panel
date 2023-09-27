@@ -1,9 +1,9 @@
 import { apiSlice } from "../api/apiSlice";
 
-const customersApi = apiSlice.injectEndpoints({
+export const customersApi = apiSlice.injectEndpoints({
     endpoints: (builder) => ({
         getCustomers: builder.query({
-            query: () => "/customers"
+            query: ({ itemOffset, parPage }) => `/customers?page=${itemOffset}&limit=${parPage}`
         }),
         createCustomers: builder.mutation({
             query: (data) => ({
