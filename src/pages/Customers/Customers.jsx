@@ -18,7 +18,7 @@ const Customers = () => {
 
   let content = null;
   if (isLoading) {
-    content = <div>Loading....</div>;
+    content = <div className="text-lg font-semibold">Loading....</div>;
   }
   if (!isLoading && isError) {
     content = (
@@ -90,7 +90,7 @@ const Customers = () => {
       <RouteNavbar></RouteNavbar>
       <div className="mt-4 ">
         <CustomersHeader></CustomersHeader>
-        <div className="overflow-hidden hover:overflow-scroll max-h-[19rem]  ">
+        <div className="overflow-hidden hover:overflow-scroll h-[19rem]  ">
           <div className="ml-3  max-w-[82.938rem] mt-4">
             <table className="table table-zebra ">
               {/* head */}

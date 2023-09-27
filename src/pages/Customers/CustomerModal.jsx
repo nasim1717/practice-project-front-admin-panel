@@ -9,6 +9,7 @@ import { MdErrorOutline } from "react-icons/md";
 import BounceLoader from "react-spinners/BounceLoader";
 import { useCreateCustomersMutation } from "../../features/customers/customersApi";
 import { useRef } from "react";
+import Swal from "sweetalert2";
 
 const customStyles = {
   control: (base) => ({
@@ -29,8 +30,9 @@ const CustomerModal = () => {
   const [optionsCitys, setOptionCitys] = useState([]);
   const { data: countrys } = useGetCountryQuery();
   const dispatch = useDispatch();
-  const { control, handleSubmit, formState, setError } = useForm();
-  const [createCustomers, { data: createCustomerData, error }] = useCreateCustomersMutation();
+  const { control, handleSubmit, formState, setError, reset } = useForm();
+  const [createCustomers, { data: createCustomerData, error, isLoading }] =
+    useCreateCustomersMutation();
   const modalRef = useRef(null);
   useEffect(() => {
     if (countrys?.data) {
@@ -94,7 +96,20 @@ const CustomerModal = () => {
   }, [error]);
 
   useEffect(() => {
-    console.log("create customer succes-->", createCustomerData);
+    if (createCustomerData?.status === "SUCCESS") {
+      Swal.fire({
+        position: "top-end",
+        icon: "success",
+        title: `${createCustomerData?.message}`,
+        showConfirmButton: false,
+        timer: 1500,
+      });
+      setCountry("");
+      setCity("");
+      setState("");
+
+      closeModal();
+    }
   }, [createCustomerData]);
 
   const clearErrors = (fieldName) => {
@@ -103,6 +118,10 @@ const CustomerModal = () => {
 
   const closeModal = () => {
     if (modalRef.current) {
+      setCity("");
+      setCountry("");
+      setState("");
+      reset();
       modalRef.current.close();
     }
   };
@@ -142,7 +161,6 @@ const CustomerModal = () => {
   };
 
   const onSubmit = (data) => {
-    console.log("form data-->", data);
     const customersData = {
       customer_name: data.customer_name,
       company_name: data.company_name,
@@ -157,6 +175,7 @@ const CustomerModal = () => {
       country_id: data.country.value.id,
     };
     createCustomers(customersData);
+    reset();
   };
 
   return (
@@ -164,11 +183,10 @@ const CustomerModal = () => {
       <div className="modal-box  max-w-[65%]">
         <div className="flex justify-between pb-5 ">
           <h3 className="font-medium text-lg">Add Customer</h3>
-          <form method="dialog">
-            <button className="">
-              <RxCross1 className="text-[20px]"></RxCross1>
-            </button>
-          </form>
+
+          <button onClick={closeModal} className="">
+            <RxCross1 className="text-[20px]"></RxCross1>
+          </button>
         </div>
         <div className="">
           <form onSubmit={handleSubmit(onSubmit)} className="">
@@ -198,6 +216,7 @@ const CustomerModal = () => {
                   <Controller
                     name="password"
                     control={control}
+                    defaultValue={""}
                     rules={{
                       required: "The password field is required",
                       minLength: {
@@ -227,7 +246,7 @@ const CustomerModal = () => {
                   />
                 </div>
                 {formState?.errors?.password && (
-                  <MdErrorOutline className="text-red-500 absolute right-9 top-2 "></MdErrorOutline>
+                  <MdErrorOutline className="text-red-500 absolute right-[90px] top-2 "></MdErrorOutline>
                 )}
               </div>
               {/* password end */}
@@ -240,6 +259,7 @@ const CustomerModal = () => {
                   <Controller
                     name="username"
                     control={control}
+                    defaultValue={""}
                     rules={{
                       required: "The username field is required",
                     }}
@@ -263,8 +283,8 @@ const CustomerModal = () => {
                     )}
                   ></Controller>
                 </div>
-                {formState?.errors?.userName && (
-                  <MdErrorOutline className="text-red-500 absolute right-7 top-3 "></MdErrorOutline>
+                {formState?.errors?.username && (
+                  <MdErrorOutline className="text-red-500 absolute right-[87px] top-3 "></MdErrorOutline>
                 )}
               </div>
               {/* user name end */}
@@ -277,6 +297,7 @@ const CustomerModal = () => {
                   <Controller
                     name="email"
                     control={control}
+                    defaultValue={""}
                     rules={{
                       required: "The email field is required",
                     }}
@@ -301,7 +322,7 @@ const CustomerModal = () => {
                   ></Controller>
                 </div>
                 {formState?.errors?.email && (
-                  <MdErrorOutline className="text-red-500 absolute right-8 top-3 "></MdErrorOutline>
+                  <MdErrorOutline className="text-red-500 absolute right-[90px] top-3 "></MdErrorOutline>
                 )}
               </div>
               {/* Email end */}
@@ -314,6 +335,7 @@ const CustomerModal = () => {
                   <Controller
                     name="customer_name"
                     control={control}
+                    defaultValue={""}
                     rules={{
                       required: "The customer Name field is required",
                     }}
@@ -338,21 +360,22 @@ const CustomerModal = () => {
                       </>
                     )}
                   ></Controller>
-                  {formState?.errors?.customerName && (
+                  {formState?.errors?.customer_name && (
                     <MdErrorOutline className="text-red-500 absolute right-3 top-3 "></MdErrorOutline>
                   )}
                 </div>
               </div>
               {/* customer name end */}
               {/* company name  */}
-              <div className="flex items-center gap-x-6 relative">
+              <div className="flex items-center gap-x-6 ">
                 <label htmlFor="comapnyName" className="text-[16px] text-gray-500">
                   Company Name
                 </label>
-                <div className="flex flex-col">
+                <div className="flex flex-col relative">
                   <Controller
                     name="company_name"
                     control={control}
+                    defaultValue={""}
                     rules={{
                       required: "The compnay name is required",
                     }}
@@ -377,10 +400,10 @@ const CustomerModal = () => {
                       </>
                     )}
                   ></Controller>
+                  {formState?.errors?.company_name && (
+                    <MdErrorOutline className="text-red-500 absolute right-2 top-3 "></MdErrorOutline>
+                  )}
                 </div>
-                {formState?.errors?.companyName && (
-                  <MdErrorOutline className="text-red-500 absolute right-8 top-3 "></MdErrorOutline>
-                )}
               </div>
               {/*company name end */}
               {/* phone */}
@@ -392,6 +415,7 @@ const CustomerModal = () => {
                   <Controller
                     name="phone"
                     control={control}
+                    defaultValue={""}
                     rules={{
                       required: "The phone field is required",
                     }}
@@ -416,7 +440,7 @@ const CustomerModal = () => {
                   ></Controller>
                 </div>
                 {formState?.errors?.phone && (
-                  <MdErrorOutline className="text-red-500 absolute right-8 top-3 "></MdErrorOutline>
+                  <MdErrorOutline className="text-red-500 absolute right-[88px] top-3 "></MdErrorOutline>
                 )}
               </div>
               {/* phone end  */}
@@ -510,6 +534,7 @@ const CustomerModal = () => {
                             field.onChange(e);
                             handleCountry(e);
                           }}
+                          value={country ? country.label : null}
                           options={optionCountrys}
                           styles={customStyles}
                           isClearable={isClearable}
@@ -693,10 +718,17 @@ const CustomerModal = () => {
             </div>
             <div className="mt-3 flex justify-end">
               <div className="flex items-center relative">
-                <button className="bg-[#15803d] text-[#f9fafb] py-2 px-5 rounded-md text-base font-bold">
+                <button
+                  disabled={isLoading}
+                  className={`${
+                    isLoading && "opacity-90"
+                  } bg-[#15803d] text-[#f9fafb] py-2 px-5 rounded-md text-base font-bold`}
+                >
                   + Save
                 </button>
-                <BounceLoader color="#f4f4f5" size={20} className={`absolute right-7 `} />
+                {isLoading && (
+                  <BounceLoader color="#f4f4f5" size={20} className={`absolute right-7 `} />
+                )}
               </div>
             </div>
           </form>

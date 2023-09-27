@@ -22,7 +22,8 @@
     "react-select": "^5.7.5",
     "react-spinners": "^0.13.8",
     "react-tooltip": "^5.21.4",
-    "sort-by": "^1.2.0"
+    "sort-by": "^1.2.0",
+    "sweetalert2": "^11.7.31"
   },
   "devDependencies": {
     "@types/react": "^18.2.15",

@@ -11,7 +11,6 @@ const useAuthCheck = () => {
             const auth = JSON.parse(localAuth);
             if (auth?.accesstoken && auth?.user)
                 dispatch(userLogin({ accesstoken: auth.accesstoken, user: auth.user }));
-
         }
         setAuthChecked(true);
     }, [dispatch, setAuthChecked]);
