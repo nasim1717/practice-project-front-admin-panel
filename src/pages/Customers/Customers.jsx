@@ -3,9 +3,9 @@ import { customersApi } from "../../features/customers/customersApi";
 import RouteNavbar from "../shared/Navbar/RouteNavbar";
 import CustomersHeader from "./CustomersHeader";
 import { useNavigate } from "react-router-dom";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import ReactPaginate from "react-paginate";
-
+import { globalSearch as customerGlobalSerach } from "../../features/customers/customersSlice/";
 import CustomersTableRow from "../../components/TableRow/CustomersTableRow";
 
 const Customers = () => {
@@ -15,15 +15,43 @@ const Customers = () => {
   const [fromData, setFromData] = useState(0);
   const [toData, setToData] = useState(0);
   const [totalData, setTotalData] = useState(0);
+  const [query, setQuery] = useState(null);
+  const [querySort, setQuerySort] = useState(false);
+  const [searchCustomerName, setSearchCustomerName] = useState("");
+  const [searchCompnayName, setSearchCompanyName] = useState("");
+  const [searchOnOff, setSearchOnOff] = useState(false);
+  const [globalSearch, setGlobalSearch] = useState(false);
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const [content, setContent] = useState(<div className="text-lg font-semibold">Loading....</div>);
 
+  const globalSearchSelect = useSelector((state) => state.customers.globalSearch);
+
   useEffect(() => {
-    dispatch(customersApi.endpoints.getCustomers.initiate({ itemOffset, parPage }))
+    if (globalSearchSelect) {
+      setGlobalSearch(true);
+      setItemOffset(1);
+      setContent(<div className="text-lg font-semibold">Loading....</div>);
+    } else {
+      setGlobalSearch(false);
+    }
+    console.log("globalSerach-->useefect", globalSearch);
+  }, [globalSearchSelect, globalSearch]);
+
+  useEffect(() => {
+    dispatch(
+      customersApi.endpoints.getCustomers.initiate({
+        itemOffset,
+        parPage,
+        query,
+        searchCompnayName,
+        searchCustomerName,
+        globalSearchSelect,
+        globalSearch,
+      })
+    )
       .unwrap()
       .then((data) => {
-        console.log("data-->", data.data);
         if (data?.data?.length > 0) {
           let dispalyDataFrom = data?.from;
           const content = data.data.map((customer) => (
@@ -53,12 +81,88 @@ const Customers = () => {
         }
         setContent(<div className="text-lg font-semibold">server error</div>);
       });
-  }, [itemOffset, parPage]);
+  }, [
+    itemOffset,
+    parPage,
+    query,
+    searchCustomerName,
+    searchCompnayName,
+    searchOnOff,
+    dispatch,
+    navigate,
+    globalSearchSelect,
+    globalSearch,
+  ]);
 
   const handlePageClick = (event) => {
     setContent(<div className="text-lg font-semibold">Loading....</div>);
     setItemOffset(event.selected + 1);
   };
+
+  const handleCustomerId = () => {
+    // order_by_column=legacy_customer_id&order_by=ASC&page=1&limit=20
+    if (querySort) {
+      const qry = `order_by_column=legacy_customer_id&order_by=DESC`;
+      setQuery(qry);
+    } else {
+      const qry = `order_by_column=legacy_customer_id&order_by=ASC`;
+      setQuery(qry);
+    }
+    setContent(<div className="text-lg font-semibold">Loading....</div>);
+    setQuerySort(!querySort);
+    dispatch(customerGlobalSerach(""));
+  };
+
+  const handleCustomerName = () => {
+    // order_by_column=customer_name&order_by=DESC&page=1&limit=20
+    if (querySort) {
+      const qry = `order_by_column=customer_name&order_by=DESC`;
+      setQuery(qry);
+    } else {
+      const qry = `order_by_column=customer_name&order_by=ASC`;
+      setQuery(qry);
+    }
+    setContent(<div className="text-lg font-semibold">Loading....</div>);
+    setQuerySort(!querySort);
+    dispatch(customerGlobalSerach(""));
+  };
+
+  const handleCompanyName = () => {
+    // order_by_column=company_name&order_by=ASC&page=1&limit=20
+    if (querySort) {
+      const qry = `order_by_column=company_name&order_by=DESC`;
+      setQuery(qry);
+    } else {
+      const qry = `order_by_column=company_name&order_by=ASC`;
+      setQuery(qry);
+    }
+    setContent(<div className="text-lg font-semibold">Loading....</div>);
+    setQuerySort(!querySort);
+    dispatch(customerGlobalSerach(""));
+  };
+
+  const handleCustomerNameSubmit = (e) => {
+    e.preventDefault();
+    const value = e.target.customerName.value;
+    setContent(<div className="text-lg font-semibold">Loading....</div>);
+    setItemOffset(1);
+    setSearchOnOff(!searchOnOff);
+    setGlobalSearch(false);
+    setSearchCustomerName(value);
+    dispatch(customerGlobalSerach(""));
+  };
+  const handleCompanyNameSubmit = (e) => {
+    e.preventDefault();
+    const value = e.target.companyName.value;
+    setContent(<div className="text-lg font-semibold">Loading....</div>);
+    setItemOffset(1);
+    setSearchOnOff(!searchOnOff);
+    setGlobalSearch(false);
+    setSearchCompanyName(value);
+    dispatch(customerGlobalSerach(""));
+  };
+
+  console.log("globalSerach-->", globalSearch);
 
   return (
     <div className="shadow-4xl">
@@ -72,9 +176,15 @@ const Customers = () => {
               <thead className="">
                 <tr className="text-[16px] text-[#1e293b] font-semibold bg-[#f3f4f6]">
                   <th className="py-4">SL</th>
-                  <th className=" underline cursor-pointer">Customer Id</th>
-                  <th className=" underline cursor-pointer">Customer Name</th>
-                  <th className=" underline cursor-pointer">Company Name</th>
+                  <th onClick={handleCustomerId} className=" underline cursor-pointer">
+                    Customer Id
+                  </th>
+                  <th onClick={handleCustomerName} className=" underline cursor-pointer">
+                    Customer Name
+                  </th>
+                  <th onClick={handleCompanyName} className=" underline cursor-pointer">
+                    Company Name
+                  </th>
                   <th className="">All Vehicles</th>
                   <th className="">On Hand</th>
                   <th className="">Car On The Way</th>
@@ -94,18 +204,20 @@ const Customers = () => {
                   <td></td>
                   <td></td>
                   <td className="py-3">
-                    <form>
+                    <form onSubmit={handleCustomerNameSubmit}>
                       <input
                         type="text"
+                        name="customerName"
                         className="input-text border-solid border-[1px] py-[6px] pl-2 bg-[#f1f5f9] rounded-md w-[200px] font-semibold text-[15px]"
                         placeholder="Customer Name"
                       />
                     </form>
                   </td>
                   <td>
-                    <form>
+                    <form onSubmit={handleCompanyNameSubmit}>
                       <input
                         type="text"
+                        name="companyName"
                         className="input-text border-solid border-[1px] py-[6px] pl-2 bg-[#f1f5f9] rounded-md w-[150px] font-semibold text-[15px]"
                         placeholder="Company Name"
                       />

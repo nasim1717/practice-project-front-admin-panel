@@ -2,8 +2,18 @@ import { CgProfile } from "react-icons/cg";
 import { BiSearch } from "react-icons/bi";
 import { LiaPlusCircleSolid } from "react-icons/lia";
 import CustomerModal from "./CustomerModal";
+import { useDispatch } from "react-redux";
+import { globalSearch } from "../../features/customers/customersSlice";
 
 const CustomersHeader = () => {
+  const dispatch = useDispatch();
+
+  const handleGlobalSearch = (e) => {
+    e.preventDefault();
+    const value = e.target.global.value;
+    dispatch(globalSearch(value));
+  };
+
   return (
     <div className="navbar bg-base-100 flex justify-between items-center pt-5 pb-6 border-b-[1px]">
       <div className="ml-4">
@@ -12,11 +22,12 @@ const CustomersHeader = () => {
       </div>
       <div className="mr-4">
         <div>
-          <form className="flex items-center gap-x-2">
+          <form onSubmit={handleGlobalSearch} className="flex items-center gap-x-2">
             {/* <input type="text" className="input" />
              */}
             <input
               type="text"
+              name="global"
               className="input-text border-solid border-[1px] py-[6px] pl-2 bg-[#f1f5f9] rounded-md w-[300px] font-semibold text-[15px]"
               placeholder="Customers Global Search"
             />
