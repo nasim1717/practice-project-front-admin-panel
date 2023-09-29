@@ -3,10 +3,21 @@ import { useState } from "react";
 import { CgProfile } from "react-icons/cg";
 import { HiArrowRightOnRectangle } from "react-icons/hi2";
 import { MdOutlineLightMode } from "react-icons/md";
+import { useDispatch } from "react-redux";
+import { userLogout } from "../../features/auth/authSlice";
+import { useNavigate } from "react-router-dom";
 
 // eslint-disable-next-line react/prop-types
 const AdminProfile = ({ sidebarOn, sidebarFocus }) => {
   const [adminProfile, setAdminProfile] = useState(false);
+  const dispatch = useDispatch();
+  const navigator = useNavigate();
+
+  const handleLogout = () => {
+    dispatch(userLogout());
+    localStorage.clear();
+    navigator("/auth-pages/login");
+  };
 
   return (
     <>
@@ -52,7 +63,10 @@ const AdminProfile = ({ sidebarOn, sidebarFocus }) => {
         <div className={adminProfile ? "block" : "hidden"}>
           <hr className=" border-[#047857]  border-[1px]  mb-2" />
           <div className="px-2">
-            <div className="flex items-center  my-3 py-2 text-[#f1f5f9] font-bold hover:bg-[#047857] rounded">
+            <div
+              onClick={handleLogout}
+              className="flex items-center  my-3 py-2 text-[#f1f5f9] font-bold hover:bg-[#047857] rounded cursor-pointer"
+            >
               <HiArrowRightOnRectangle
                 className={`text-[20px]  ${sidebarOn && !sidebarFocus ? "mx-auto" : "ml-4"}`}
               ></HiArrowRightOnRectangle>

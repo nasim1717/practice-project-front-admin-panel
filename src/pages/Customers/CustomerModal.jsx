@@ -7,9 +7,10 @@ import { useDispatch } from "react-redux";
 import { useForm, Controller } from "react-hook-form";
 import { MdErrorOutline } from "react-icons/md";
 import BounceLoader from "react-spinners/BounceLoader";
-import { useCreateCustomersMutation } from "../../features/customers/customersApi";
+import { customersApi, useCreateCustomersMutation } from "../../features/customers/customersApi";
 import { useRef } from "react";
 import Swal from "sweetalert2";
+import { customersRefetch } from "../../features/customers/customersSlice";
 
 const customStyles = {
   control: (base) => ({
@@ -31,8 +32,9 @@ const CustomerModal = () => {
   const { data: countrys } = useGetCountryQuery();
   const dispatch = useDispatch();
   const { control, handleSubmit, formState, setError, reset } = useForm();
-  const [createCustomers, { data: createCustomerData, error, isLoading }] =
-    useCreateCustomersMutation();
+  const [isLoading, setIsLoading] = useState(false);
+  // const [createCustomers, { data: createCustomerData, error, isLoading }] =
+  //   useCreateCustomersMutation();
   const modalRef = useRef(null);
   useEffect(() => {
     if (countrys?.data) {
@@ -83,34 +85,34 @@ const CustomerModal = () => {
       .catch(() => {});
   }, [state, isLoadingCity, dispatch]);
 
-  useEffect(() => {
-    if (error?.data?.errors) {
-      Object.keys(error?.data?.errors).forEach((field) => {
-        if (error?.data?.errors[field]) {
-          setError(field, { message: error?.data?.errors[field][0] });
-        } else {
-          clearErrors(field);
-        }
-      });
-    }
-  }, [error]);
+  // useEffect(() => {
+  //   if (error?.data?.errors) {
+  //     Object.keys(error?.data?.errors).forEach((field) => {
+  //       if (error?.data?.errors[field]) {
+  //         setError(field, { message: error?.data?.errors[field][0] });
+  //       } else {
+  //         clearErrors(field);
+  //       }
+  //     });
+  //   }
+  // }, [error]);
 
-  useEffect(() => {
-    if (createCustomerData?.status === "SUCCESS") {
-      Swal.fire({
-        position: "top-end",
-        icon: "success",
-        title: `${createCustomerData?.message}`,
-        showConfirmButton: false,
-        timer: 1500,
-      });
-      setCountry("");
-      setCity("");
-      setState("");
-
-      closeModal();
-    }
-  }, [createCustomerData]);
+  // useEffect(() => {
+  //   if (createCustomerData?.status === "SUCCESS") {
+  //     Swal.fire({
+  //       position: "top-end",
+  //       icon: "success",
+  //       title: `${createCustomerData?.message}`,
+  //       showConfirmButton: false,
+  //       timer: 1500,
+  //     });
+  //     setCountry("");
+  //     setCity("");
+  //     setState("");
+  //     closeModal();
+  //     dispatch(customersRefetch(true));
+  //   }
+  // }, [createCustomerData]);
 
   const clearErrors = (fieldName) => {
     setError(fieldName, { message: "" });
@@ -122,6 +124,7 @@ const CustomerModal = () => {
       setCountry("");
       setState("");
       reset();
+      setIsLoading(false);
       modalRef.current.close();
     }
   };
@@ -161,6 +164,7 @@ const CustomerModal = () => {
   };
 
   const onSubmit = (data) => {
+    setIsLoading(true);
     const customersData = {
       customer_name: data.customer_name,
       company_name: data.company_name,
@@ -174,7 +178,37 @@ const CustomerModal = () => {
       password: data.password,
       country_id: data.country.value.id,
     };
-    createCustomers(customersData);
+    // createCustomers(customersData);
+    dispatch(customersApi.endpoints.createCustomers.initiate(customersData))
+      .unwrap()
+      .then((data) => {
+        console.log("create customers-->", data);
+        if (data?.status === "SUCCESS") {
+          Swal.fire({
+            position: "top-end",
+            icon: "success",
+            title: `${data?.message}`,
+            showConfirmButton: false,
+            timer: 1500,
+          });
+
+          closeModal();
+          dispatch(customersRefetch(true));
+        }
+      })
+      .catch((error) => {
+        if (error?.data?.errors) {
+          Object.keys(error?.data?.errors).forEach((field) => {
+            if (error?.data?.errors[field]) {
+              setError(field, { message: error?.data?.errors[field][0] });
+            } else {
+              clearErrors(field);
+            }
+          });
+        }
+        setIsLoading(false);
+      });
+
     reset();
   };
 
@@ -208,7 +242,7 @@ const CustomerModal = () => {
               {/* customer id end */}
               {/*  password */}
 
-              <div className="flex items-center gap-x-[72px] mt-2 relative">
+              <div className="flex items-center gap-x-[72px] mt-2 ">
                 <label htmlFor="password" className="text-[16px] text-gray-500">
                   Password
                 </label>
@@ -226,17 +260,22 @@ const CustomerModal = () => {
                     }}
                     render={({ field }) => (
                       <>
-                        <input
-                          {...field}
-                          type="password"
-                          id="password"
-                          className={` ${
-                            formState?.errors?.password
-                              ? "border-red-500 input-text-error"
-                              : "input-text"
-                          } border-solid border-[1px] py-[6px] pl-2 bg-[#f1f5f9] rounded-md w-[300px] font-semibold text-[15px] `}
-                          placeholder="Password"
-                        />
+                        <div className="w-[300px] relative">
+                          <input
+                            {...field}
+                            type="password"
+                            id="password"
+                            className={` ${
+                              formState?.errors?.password
+                                ? "border-red-500 input-text-error"
+                                : "input-text"
+                            } border-solid border-[1px] py-[6px] pl-2 bg-[#f1f5f9] rounded-md w-full font-semibold text-[15px] `}
+                            placeholder="Password"
+                          />
+                          {formState?.errors?.password && (
+                            <MdErrorOutline className="text-red-500 absolute right-2 top-2 "></MdErrorOutline>
+                          )}
+                        </div>
 
                         {formState?.errors?.password && (
                           <p className="text-red-500 ">{formState?.errors?.password?.message}</p>
@@ -245,17 +284,14 @@ const CustomerModal = () => {
                     )}
                   />
                 </div>
-                {formState?.errors?.password && (
-                  <MdErrorOutline className="text-red-500 absolute right-[90px] top-2 "></MdErrorOutline>
-                )}
               </div>
               {/* password end */}
               {/* user name */}
-              <div className="flex items-center gap-x-[73px] relative">
+              <div className="flex items-center gap-x-[73px]">
                 <label htmlFor="userName" className="text-[16px] text-gray-500">
                   Username
                 </label>
-                <div className="flex flex-col">
+                <div className="flex flex-col  relative">
                   <Controller
                     name="username"
                     control={control}
@@ -282,18 +318,18 @@ const CustomerModal = () => {
                       </>
                     )}
                   ></Controller>
+                  {formState?.errors?.username && (
+                    <MdErrorOutline className="text-red-500 absolute right-3 top-3 "></MdErrorOutline>
+                  )}
                 </div>
-                {formState?.errors?.username && (
-                  <MdErrorOutline className="text-red-500 absolute right-[87px] top-3 "></MdErrorOutline>
-                )}
               </div>
               {/* user name end */}
               {/* Email */}
-              <div className="flex items-center gap-x-[100px] relative">
+              <div className="flex items-center gap-x-[100px]">
                 <label htmlFor="email" className="text-[16px] text-gray-500">
                   Email
                 </label>
-                <div className="flex flex-col">
+                <div className="flex flex-col  relative">
                   <Controller
                     name="email"
                     control={control}
@@ -320,10 +356,10 @@ const CustomerModal = () => {
                       </>
                     )}
                   ></Controller>
+                  {formState?.errors?.email && (
+                    <MdErrorOutline className="text-red-500 absolute right-2 top-3 "></MdErrorOutline>
+                  )}
                 </div>
-                {formState?.errors?.email && (
-                  <MdErrorOutline className="text-red-500 absolute right-[90px] top-3 "></MdErrorOutline>
-                )}
               </div>
               {/* Email end */}
               {/* Customer name */}
@@ -361,7 +397,7 @@ const CustomerModal = () => {
                     )}
                   ></Controller>
                   {formState?.errors?.customer_name && (
-                    <MdErrorOutline className="text-red-500 absolute right-3 top-3 "></MdErrorOutline>
+                    <MdErrorOutline className="text-red-500 absolute right-2 top-3 "></MdErrorOutline>
                   )}
                 </div>
               </div>
@@ -407,11 +443,11 @@ const CustomerModal = () => {
               </div>
               {/*company name end */}
               {/* phone */}
-              <div className="flex items-center gap-x-[98px] relative">
+              <div className="flex items-center gap-x-[98px] ">
                 <label htmlFor="phone" className="text-[16px] text-gray-500">
                   Phone
                 </label>
-                <div className="flex flex-col">
+                <div className="flex flex-col relative">
                   <Controller
                     name="phone"
                     control={control}
@@ -438,10 +474,10 @@ const CustomerModal = () => {
                       </>
                     )}
                   ></Controller>
+                  {formState?.errors?.phone && (
+                    <MdErrorOutline className="text-red-500 absolute right-2 top-3 "></MdErrorOutline>
+                  )}
                 </div>
-                {formState?.errors?.phone && (
-                  <MdErrorOutline className="text-red-500 absolute right-[88px] top-3 "></MdErrorOutline>
-                )}
               </div>
               {/* phone end  */}
               {/* phne uae */}

@@ -10,11 +10,11 @@ const SidebarSettings = ({ sidebarOn, sidebarFocus }) => {
   const [settingsCollps, setSettingsCollps] = useState(false);
 
   return (
-    <div className="">
+    <div className="mb-[77px]">
       <div
         className={`ml-3 flex items-center mt-3 mx-[10px] py-2 text-[#f1f5f9] font-bold hover:bg-[#047857] ${
           settingsCollps && "bg-[#047857]"
-        } rounded`}
+        } rounded `}
       >
         <AiOutlineSetting
           className={`text-[20px] ${sidebarOn && !sidebarFocus ? "" : "ml-4"} `}

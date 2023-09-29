@@ -1,16 +1,19 @@
 import { useEffect, useState } from "react";
-import { customersApi } from "../../features/customers/customersApi";
+import { useGetCustomersQuery } from "../../features/customers/customersApi";
 import RouteNavbar from "../shared/Navbar/RouteNavbar";
 import CustomersHeader from "./CustomersHeader";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import ReactPaginate from "react-paginate";
-import { globalSearch as customerGlobalSerach } from "../../features/customers/customersSlice/";
 import CustomersTableRow from "../../components/TableRow/CustomersTableRow";
+import {
+  customersRefetch,
+  globalSearch as globalSearchFunc,
+} from "../../features/customers/customersSlice";
 
 const Customers = () => {
   const [pageCount, setPageCount] = useState(0);
-  const [parPage, setParPage] = useState(3);
+  const [parPage, setParPage] = useState(20);
   const [itemOffset, setItemOffset] = useState(1);
   const [fromData, setFromData] = useState(0);
   const [toData, setToData] = useState(0);
@@ -20,79 +23,77 @@ const Customers = () => {
   const [searchCustomerName, setSearchCustomerName] = useState("");
   const [searchCompnayName, setSearchCompanyName] = useState("");
   const [searchOnOff, setSearchOnOff] = useState(false);
-  const [globalSearch, setGlobalSearch] = useState(false);
+
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const [content, setContent] = useState(<div className="text-lg font-semibold">Loading....</div>);
 
-  const globalSearchSelect = useSelector((state) => state.customers.globalSearch);
+  const globalSearch = useSelector((state) => state.customers.globalSearch);
 
-  useEffect(() => {
-    if (globalSearchSelect) {
-      setGlobalSearch(true);
-      setItemOffset(1);
-      setContent(<div className="text-lg font-semibold">Loading....</div>);
-    } else {
-      setGlobalSearch(false);
-    }
-    console.log("globalSerach-->useefect", globalSearch);
-  }, [globalSearchSelect, globalSearch]);
+  const refetchCustomers = useSelector((state) => state.customers.customerRefetch);
 
-  useEffect(() => {
-    dispatch(
-      customersApi.endpoints.getCustomers.initiate({
-        itemOffset,
-        parPage,
-        query,
-        searchCompnayName,
-        searchCustomerName,
-        globalSearchSelect,
-        globalSearch,
-      })
-    )
-      .unwrap()
-      .then((data) => {
-        if (data?.data?.length > 0) {
-          let dispalyDataFrom = data?.from;
-          const content = data.data.map((customer) => (
-            <CustomersTableRow
-              key={customer.id}
-              customer={customer}
-              dispalyDataFrom={dispalyDataFrom++}
-            ></CustomersTableRow>
-          ));
-          setContent(content);
-        } else if (data?.data?.length === 0) {
-          setContent(
-            <tr className="text-lg font-semibold">
-              <td className="">Data </td>
-              <td>not found!</td>
-            </tr>
-          );
-        }
-        setPageCount(data?.last_page);
-        setToData(data?.to);
-        setFromData(data?.from);
-        setTotalData(data?.total);
-      })
-      .catch((er) => {
-        if (er?.status === 401) {
-          navigate("/auth-pages/login");
-        }
-        setContent(<div className="text-lg font-semibold">server error</div>);
-      });
-  }, [
+  const { data, isLoading, error, isError } = useGetCustomersQuery({
     itemOffset,
     parPage,
     query,
-    searchCustomerName,
     searchCompnayName,
-    searchOnOff,
-    dispatch,
-    navigate,
-    globalSearchSelect,
+    searchCustomerName,
     globalSearch,
-  ]);
+  });
+
+  useEffect(() => {
+    if (refetchCustomers) {
+      setQuery(null);
+      setItemOffset(1);
+      setContent(<div className="text-lg font-semibold">Loading....</div>);
+    }
+  }, [refetchCustomers, dispatch]);
+
+  useEffect(() => {
+    if (globalSearch) {
+      setItemOffset(1);
+      setParPage(20);
+      setContent(<div className="text-lg font-semibold">Loading....</div>);
+    }
+  }, [globalSearch]);
+
+  useEffect(() => {
+    if (isLoading) {
+      setContent(<div className="text-lg font-semibold">Loading....</div>);
+    } else {
+      if (data?.data?.length > 0) {
+        let dispalyDataFrom = data?.from;
+        const content = data.data.map((customer) => (
+          <CustomersTableRow
+            key={customer.id}
+            customer={customer}
+            dispalyDataFrom={dispalyDataFrom++}
+          ></CustomersTableRow>
+        ));
+        setContent(content);
+      } else if (data?.data?.length === 0) {
+        setContent(
+          <tr className="text-lg font-semibold">
+            <td className="">Data </td>
+            <td>not found!</td>
+          </tr>
+        );
+      }
+      setPageCount(data?.last_page);
+      setToData(data?.to);
+      setFromData(data?.from);
+      setTotalData(data?.total);
+      customersRefetch(false);
+    }
+  }, [isLoading, data, dispatch]);
+  useEffect(() => {
+    if (error?.status === 401) {
+      navigate("/auth-pages/login");
+    }
+    if (error) {
+      setContent(<div className="text-lg font-semibold">server error</div>);
+    }
+  }, [error, isError, navigate]);
 
   const handlePageClick = (event) => {
     setContent(<div className="text-lg font-semibold">Loading....</div>);
@@ -110,7 +111,7 @@ const Customers = () => {
     }
     setContent(<div className="text-lg font-semibold">Loading....</div>);
     setQuerySort(!querySort);
-    dispatch(customerGlobalSerach(""));
+    dispatch(globalSearchFunc(""));
   };
 
   const handleCustomerName = () => {
@@ -124,7 +125,7 @@ const Customers = () => {
     }
     setContent(<div className="text-lg font-semibold">Loading....</div>);
     setQuerySort(!querySort);
-    dispatch(customerGlobalSerach(""));
+    dispatch(globalSearchFunc(""));
   };
 
   const handleCompanyName = () => {
@@ -138,7 +139,7 @@ const Customers = () => {
     }
     setContent(<div className="text-lg font-semibold">Loading....</div>);
     setQuerySort(!querySort);
-    dispatch(customerGlobalSerach(""));
+    dispatch(globalSearchFunc(""));
   };
 
   const handleCustomerNameSubmit = (e) => {
@@ -147,9 +148,8 @@ const Customers = () => {
     setContent(<div className="text-lg font-semibold">Loading....</div>);
     setItemOffset(1);
     setSearchOnOff(!searchOnOff);
-    setGlobalSearch(false);
     setSearchCustomerName(value);
-    dispatch(customerGlobalSerach(""));
+    dispatch(globalSearchFunc(""));
   };
   const handleCompanyNameSubmit = (e) => {
     e.preventDefault();
@@ -157,21 +157,18 @@ const Customers = () => {
     setContent(<div className="text-lg font-semibold">Loading....</div>);
     setItemOffset(1);
     setSearchOnOff(!searchOnOff);
-    setGlobalSearch(false);
     setSearchCompanyName(value);
-    dispatch(customerGlobalSerach(""));
+    dispatch(globalSearchFunc(""));
   };
-
-  console.log("globalSerach-->", globalSearch);
 
   return (
     <div className="shadow-4xl">
       <RouteNavbar>Customer</RouteNavbar>
       <div className="mt-4 ">
         <CustomersHeader></CustomersHeader>
-        <div className="overflow-hidden hover:overflow-scroll h-[25rem]  ">
-          <div className="ml-3  max-w-[82.938rem] mt-4">
-            <table className="table table-zebra ">
+        <div className=" overflow-hidden hover:overflow-scroll h-[23rem]  ">
+          <div className="ml-3  max-w-[81.938rem] mt-4">
+            <table className="table table-zebra">
               {/* head */}
               <thead className="">
                 <tr className="text-[16px] text-[#1e293b] font-semibold bg-[#f3f4f6]">
@@ -198,7 +195,7 @@ const Customers = () => {
                   <th className="">Delete</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="">
                 {/* row 1 */}
                 <tr className="text-[#6b7280] font-medium">
                   <td></td>
@@ -261,6 +258,7 @@ const Customers = () => {
                   setParPage(e.target.value);
                   setContent(<div className="text-lg font-semibold">Loading....</div>);
                 }}
+                value={parPage}
                 name=""
                 id=""
                 className="px-5 py-1 input-text bg-[#f1f5f9] "

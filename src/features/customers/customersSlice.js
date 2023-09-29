@@ -3,6 +3,7 @@ import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
     globalSearch: "",
+    customerRefetch: false,
 }
 
 const customersSlice = createSlice({
@@ -11,10 +12,13 @@ const customersSlice = createSlice({
     reducers: {
         globalSearch: (state, action) => {
             state.globalSearch = action.payload;
+        },
+        customersRefetch: (state, action) => {
+            state.customerRefetch = action.payload;
         }
     }
 
 
 });
-export const { globalSearch } = customersSlice.actions;
+export const { globalSearch, customersRefetch } = customersSlice.actions;
 export default customersSlice.reducer;
